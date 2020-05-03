@@ -1,4 +1,3 @@
-import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -13,7 +12,13 @@ public class Tcrawler {
     private static final String CONSUMER_KEY = "LT4IPByNOJS6RctWDBHN0Favi";
     private static final String CONSUMER_SECRET = "MYvp76RGm2D8fCZNanEr3aHAt03BBRZEppjmdcOvwZGj9bkAQ7";
 
-    public static void main(String args[]) throws Exception{
+    private static void storeAccessToken(long useId, AccessToken accessToken){
+        //TODO Store tokens safely
+        //accessToken.getToken();
+        //accessToken.getTokenSecret();
+    }
+
+    private static void getAccessToken() throws Exception{
         // The factory instance is re-useable and thread safe.
         Twitter twitter = TwitterFactory.getSingleton();
         twitter.setOAuthConsumer(CONSUMER_KEY, CONSUMER_SECRET);
@@ -41,13 +46,18 @@ public class Tcrawler {
         }
         //persist to the accessToken for future reference.
         //storeAccessToken(twitter.verifyCredentials().getId() , accessToken);
+    }
 
+    private static void crawlTwitter() throws Exception{
+        
+    }
+
+    public static void main(String args[]) throws Exception{
+        getAccessToken();
         //TODO program has keys, now crawl
+        crawlTwitter();
+
         System.exit(0);
     }
-    private static void storeAccessToken(long useId, AccessToken accessToken){
-        //TODO Store Tokens safely
-        //accessToken.getToken();
-        //accessToken.getTokenSecret();
-    }
+
 }
