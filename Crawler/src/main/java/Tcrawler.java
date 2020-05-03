@@ -1,6 +1,4 @@
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
+import twitter4j.*;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
@@ -8,7 +6,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 public class Tcrawler {
-    //Nick's Twitter account consumer keys - don't share
+    //Nick's Twitter account consumer keys - requires login
     private static final String CONSUMER_KEY = "LT4IPByNOJS6RctWDBHN0Favi";
     private static final String CONSUMER_SECRET = "MYvp76RGm2D8fCZNanEr3aHAt03BBRZEppjmdcOvwZGj9bkAQ7";
 
@@ -18,7 +16,7 @@ public class Tcrawler {
         //accessToken.getTokenSecret();
     }
 
-    private static void getAccessToken() throws Exception{
+    private static Twitter getAccessToken() throws Exception{
         // The factory instance is re-useable and thread safe.
         Twitter twitter = TwitterFactory.getSingleton();
         twitter.setOAuthConsumer(CONSUMER_KEY, CONSUMER_SECRET);
@@ -46,16 +44,18 @@ public class Tcrawler {
         }
         //persist to the accessToken for future reference.
         //storeAccessToken(twitter.verifyCredentials().getId() , accessToken);
+
+        return twitter;
     }
 
-    private static void crawlTwitter() throws Exception{
-        
+    private static void crawlTwitter(Twitter twitter) throws Exception{
+
     }
 
     public static void main(String args[]) throws Exception{
-        getAccessToken();
+        Twitter twitter = getAccessToken();
         //TODO program has keys, now crawl
-        crawlTwitter();
+        crawlTwitter(twitter);
 
         System.exit(0);
     }
