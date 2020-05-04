@@ -15,8 +15,8 @@ public class Tcrawler {
         cb.setDebugEnabled(true)
                 .setOAuthConsumerKey("LT4IPByNOJS6RctWDBHN0Favi")
                 .setOAuthConsumerSecret("MYvp76RGm2D8fCZNanEr3aHAt03BBRZEppjmdcOvwZGj9bkAQ7")
-                .setOAuthAccessToken("42011375-PmplF1B0I613j9BWJNG8krXKMDMf9fHCfHH5n5pp6")
-                .setOAuthAccessTokenSecret("NPD0nNhQNdPPFoHrT1xflSDU971fCDi65nPokpY8IPOrg")
+                .setOAuthAccessToken("42011375-weTQ4bvTir50lNUwbJYxwGckVolxQXf6kemrnTVdW")
+                .setOAuthAccessTokenSecret("IhTUGURpvkMKGu9KKOOqoBsCuTTHGemb5ss3noK6GkEFj")
                 .setJSONStoreEnabled(true);
 
 
