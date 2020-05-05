@@ -78,7 +78,7 @@ public class Tcrawler {
                     obj.put("Text", tweet.getText());
                     obj.put("Timestamp", tweet.getCreatedAt());
                     obj.put("Geolocation", tweet.getGeoLocation());
-                    obj.put("User", tweet.getUser());
+                    obj.put("User", tweet.getUser().getScreenName());
                     bw.write(obj.toJSONString() + "\n");
                     count++;
                 }
