@@ -1,3 +1,4 @@
+import org.jsoup.Jsoup;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
 import org.json.simple.JSONObject;
@@ -8,6 +9,10 @@ import java.util.List;
 public class Tcrawler {
     private static final Object lock = new Object();
     private static List<Status> tweets = new ArrayList<Status>();
+
+    public URLEntity[] crawlURL(Status tweet) {
+        return tweet.getURLEntities();
+    }
 
     public static void main(String args[]) throws TwitterException, FileNotFoundException, IOException {
 
@@ -69,8 +74,9 @@ public class Tcrawler {
         twitterStream.addListener(listener);
 
         twitterStream.filter(fq);
-
+        int length;
         int count = 0;
+        String url;
         while (count < 100) {
             synchronized (lock) {
                 for (Status tweet : tweets) {
@@ -79,6 +85,12 @@ public class Tcrawler {
                     obj.put("Timestamp", tweet.getCreatedAt());
                     obj.put("Geolocation", tweet.getGeoLocation());
                     obj.put("User", tweet.getUser().getScreenName());
+                    length = tweet.getURLEntities().length;
+                    for (int i = 0; i < length; i++) {
+                        url = tweet.getURLEntities()[i].getExpandedURL();
+                        obj.put("url" + i, url);
+                        obj.put("urltitle" + i, Jsoup.connect(url).get().title());
+                    }
                     bw.write(obj.toJSONString() + "\n");
                     count++;
                 }
