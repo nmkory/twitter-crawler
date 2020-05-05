@@ -1,3 +1,4 @@
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
@@ -85,12 +86,22 @@ public class Tcrawler {
                     obj.put("Timestamp", tweet.getCreatedAt());
                     obj.put("Geolocation", tweet.getGeoLocation());
                     obj.put("User", tweet.getUser().getScreenName());
+
                     length = tweet.getURLEntities().length;
-                    for (int i = 0; i < length; i++) {
-                        url = tweet.getURLEntities()[i].getExpandedURL();
-                        obj.put("url" + i, url);
-                        obj.put("urltitle" + i, Jsoup.connect(url).get().title());
+                    if (length > 0) {
+                        try {
+                            url = tweet.getURLEntities()[0].getExpandedURL();
+                            obj.put("URL", url);
+                            obj.put("URLTitle", Jsoup.connect(url).get().title());
+                        } catch (NullPointerException ex) {
+                            ex.printStackTrace();
+                        } catch (HttpStatusException ex) {
+                            ex.printStackTrace();
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
                     }
+
                     bw.write(obj.toJSONString() + "\n");
                     count++;
                 }
