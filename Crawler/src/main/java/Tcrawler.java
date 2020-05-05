@@ -16,9 +16,10 @@ public class Tcrawler {
     }
 
     public static void main(String args[]) throws TwitterException, FileNotFoundException, IOException {
+        int fileNum = 000;
 
         ConfigurationBuilder cb = new ConfigurationBuilder();
-        FileWriter fw = new FileWriter("output.json");
+        FileWriter fw = new FileWriter(String.format("%03d", fileNum) +".json");
         BufferedWriter bw = new BufferedWriter(fw);
 
         cb.setDebugEnabled(true)
@@ -96,6 +97,7 @@ public class Tcrawler {
                         } catch (NullPointerException ex) {
                             ex.printStackTrace();
                         } catch (HttpStatusException ex) {
+                            obj.put("URLTitle", "404 Not Found");
                             ex.printStackTrace();
                         } catch (IOException ex) {
                             ex.printStackTrace();
