@@ -63,7 +63,7 @@ public class Tcrawler {
             }
         };
 
-
+        // US bounding from http//www.naturalearthdata.com/download/110m/cultural/ne_110m_admin_0_countries.zip
         double[][] us = { {-171.791110603, 18.91619, },
                 { -66.96466, 71.3577635769,  } };
 
@@ -79,6 +79,7 @@ public class Tcrawler {
         int length;
         int count = 0;
         String url;
+
         while (count < 100) {
             synchronized (lock) {
                 for (Status tweet : tweets) {
