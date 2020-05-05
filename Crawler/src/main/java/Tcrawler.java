@@ -1,15 +1,18 @@
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
-
+import org.json.simple.JSONObject;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Tcrawler {
+    private static final Object lock = new Object();
+    private static List<Status> tweets = new ArrayList<Status>();
 
     public static void main(String args[]) throws TwitterException, FileNotFoundException, IOException {
+
         ConfigurationBuilder cb = new ConfigurationBuilder();
-        FileWriter fw = new FileWriter("output.txt");
+        FileWriter fw = new FileWriter("output.json");
         BufferedWriter bw = new BufferedWriter(fw);
 
         cb.setDebugEnabled(true)
@@ -23,8 +26,8 @@ public class Tcrawler {
         StatusListener listener = new StatusListener() {
 
             @Override
-            public void onException(Exception e) {
-                e.printStackTrace();
+            public void onException(Exception ex) {
+                ex.printStackTrace();
             }
 
             @Override
@@ -41,8 +44,11 @@ public class Tcrawler {
 
             @Override
             public void onStatus(Status status) {
-                String json = TwitterObjectFactory.getRawJSON(status);
-                System.out.println(json);
+                synchronized (lock) {
+                    if (status.getGeoLocation() != null) {
+                        tweets.add(status);
+                    }
+                }
             }
 
             @Override
@@ -50,11 +56,40 @@ public class Tcrawler {
             }
         };
 
+
+        double[][] us = { {-171.791110603, 18.91619, },
+                { -66.96466, 71.3577635769,  } };
+
+        FilterQuery fq = new FilterQuery();
+        fq.language("en");
+        fq.locations(us);
+
         TwitterStream twitterStream = new TwitterStreamFactory(cb.build()).getInstance();
 
         twitterStream.addListener(listener);
 
-        twitterStream.sample("en");
+        twitterStream.filter(fq);
+
+        int count = 0;
+        while (count < 100) {
+            synchronized (lock) {
+                for (Status tweet : tweets) {
+                    JSONObject obj = new JSONObject();
+                    obj.put("Text", tweet.getText());
+                    obj.put("Timestamp", tweet.getCreatedAt());
+                    obj.put("Geolocation", tweet.getGeoLocation());
+                    obj.put("User", tweet.getUser());
+                    bw.write(obj.toJSONString() + "\n");
+                    count++;
+                }
+                tweets.clear();
+            }
+        }
+        bw.close();
+
+
+
+
 
         System.exit(0);
     }
