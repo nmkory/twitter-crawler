@@ -27,8 +27,7 @@ public class Tcrawler {
                 .setOAuthConsumerKey("LT4IPByNOJS6RctWDBHN0Favi")
                 .setOAuthConsumerSecret("MYvp76RGm2D8fCZNanEr3aHAt03BBRZEppjmdcOvwZGj9bkAQ7")
                 .setOAuthAccessToken("42011375-weTQ4bvTir50lNUwbJYxwGckVolxQXf6kemrnTVdW")
-                .setOAuthAccessTokenSecret("IhTUGURpvkMKGu9KKOOqoBsCuTTHGemb5ss3noK6GkEFj")
-                .setJSONStoreEnabled(true);
+                .setOAuthAccessTokenSecret("IhTUGURpvkMKGu9KKOOqoBsCuTTHGemb5ss3noK6GkEFj");
 
 
         StatusListener listener = new StatusListener() {
