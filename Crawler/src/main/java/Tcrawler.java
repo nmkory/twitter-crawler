@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Tcrawler {
+    private static final int TEN_MB = 10000 * 1024;
     private static final Object lock = new Object();
     private static List<Status> tweets = new ArrayList<Status>();
 
@@ -17,11 +18,11 @@ public class Tcrawler {
 
     public static void main(String args[]) throws TwitterException, FileNotFoundException, IOException {
         int fileNum = 000;
-
-        ConfigurationBuilder cb = new ConfigurationBuilder();
-        FileWriter fw = new FileWriter(String.format("%03d", fileNum) +".json");
+        File file = new File(String.format("%03d", fileNum) +".json");
+        FileWriter fw = new FileWriter(file);
         BufferedWriter bw = new BufferedWriter(fw);
 
+        ConfigurationBuilder cb = new ConfigurationBuilder();
         cb.setDebugEnabled(true)
                 .setOAuthConsumerKey("LT4IPByNOJS6RctWDBHN0Favi")
                 .setOAuthConsumerSecret("MYvp76RGm2D8fCZNanEr3aHAt03BBRZEppjmdcOvwZGj9bkAQ7")
@@ -80,7 +81,7 @@ public class Tcrawler {
         int count = 0;
         String url;
 
-        while (count < 100) {
+        while (file.length() < TEN_MB) {
             synchronized (lock) {
                 for (Status tweet : tweets) {
                     JSONObject obj = new JSONObject();
