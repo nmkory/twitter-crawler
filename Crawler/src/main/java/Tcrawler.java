@@ -17,7 +17,7 @@ public class Tcrawler {
     }
 
     public static void main(String args[]) throws TwitterException, FileNotFoundException, IOException {
-        int fileNum = 000;
+        int fileNum = 001;
         File file = new File(String.format("%03d", fileNum) +".json");
         FileWriter fw = new FileWriter(file);
         BufferedWriter bw = new BufferedWriter(fw);
