@@ -6,11 +6,14 @@ import org.json.simple.JSONObject;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.LinkedTransferQueue;
 
 public class Tcrawler {
     private static final int TEN_MB = 10000 * 1024;
-    private static final Object lock = new Object();
-    private static List<Status> tweets = new ArrayList<Status>();
+    //private static final Object lock = new Object();
+    private static LinkedBlockingQueue<Status> statuses = new LinkedBlockingQueue<Status>();
+    private static ArrayList<Status> tweets = new ArrayList<Status>();
 
     public URLEntity[] crawlURL(Status tweet) {
         return tweet.getURLEntities();
@@ -51,11 +54,11 @@ public class Tcrawler {
 
             @Override
             public void onStatus(Status status) {
-                synchronized (lock) {
+                //synchronized (lock) {
                     if (status.getGeoLocation() != null) {
-                        tweets.add(status);
+                        statuses.add(status);
                     }
-                }
+                //}
             }
 
             @Override
@@ -81,7 +84,7 @@ public class Tcrawler {
         String url;
 
         while (file.length() < TEN_MB) {
-            synchronized (lock) {
+            if (statuses.drainTo(tweets) > 0) {
                 for (Status tweet : tweets) {
                     JSONObject obj = new JSONObject();
                     obj.put("Text", tweet.getText());
