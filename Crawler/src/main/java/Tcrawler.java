@@ -39,6 +39,7 @@ public class Tcrawler {
         FileWriter fw = new FileWriter(file);
         BufferedWriter bw = new BufferedWriter(fw);
 
+
         ConfigurationBuilder cb = new ConfigurationBuilder();
         cb.setDebugEnabled(true)
                 .setOAuthConsumerKey("LT4IPByNOJS6RctWDBHN0Favi")
@@ -104,34 +105,34 @@ public class Tcrawler {
         String url;
 
         while (file.length() < TEN_MB) {
-            if (statuses.drainTo(tweets) > 0) {
-                for (Status tweet : tweets) {
-                    JSONObject obj = new JSONObject();
-                    obj.put("Text", tweet.getText());
-                    obj.put("Timestamp", tweet.getCreatedAt());
-                    obj.put("Geolocation", tweet.getGeoLocation());
-                    obj.put("User", tweet.getUser().getScreenName());
+            statuses.drainTo(tweets);
+            
+            for (Status tweet : tweets) {
+                JSONObject obj = new JSONObject();
+                obj.put("Text", tweet.getText());
+                obj.put("Timestamp", tweet.getCreatedAt());
+                obj.put("Geolocation", tweet.getGeoLocation());
+                obj.put("User", tweet.getUser().getScreenName());
 
-                    length = tweet.getURLEntities().length;
-                    if (length > 0) {
-                        try {
-                            url = tweet.getURLEntities()[0].getExpandedURL();
-                            obj.put("URL", url);
-                            obj.put("URLTitle", Jsoup.connect(url).get().title());
-                        } catch (NullPointerException ex) {
-                            ex.printStackTrace();
-                        } catch (HttpStatusException ex) {
-                            obj.put("URLTitle", "404 Not Found");
-                            ex.printStackTrace();
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
+                length = tweet.getURLEntities().length;
+                if (length > 0) {
+                    try {
+                        url = tweet.getURLEntities()[0].getExpandedURL();
+                        obj.put("URL", url);
+                        obj.put("URLTitle", Jsoup.connect(url).get().title());
+                    } catch (NullPointerException ex) {
+                        ex.printStackTrace();
+                    } catch (HttpStatusException ex) {
+                        obj.put("URLTitle", "404 Not Found");
+                        ex.printStackTrace();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
                     }
-
-                    bw.write(obj.toJSONString() + "\n");
                 }
-                tweets.clear();
+
+                bw.write(obj.toJSONString() + "\n");
             }
+            tweets.clear();
         }
         bw.close();
 
