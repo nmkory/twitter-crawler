@@ -28,6 +28,8 @@ public class Tcrawler {
      * @throws IOException if bad things happen
      */
     public static void main(String args[]) throws IOException {
+        //Generate the ConfigurationBuilder object for connection to Twitter API
+        //Nicholas Kory's Twitter dev keys, do not share
         ConfigurationBuilder cb = new ConfigurationBuilder();
         cb.setDebugEnabled(true)
                 .setOAuthConsumerKey("LT4IPByNOJS6RctWDBHN0Favi")
@@ -76,26 +78,33 @@ public class Tcrawler {
             }
         };
 
-        // US bounding from http//www.naturalearthdata.com/download/110m/cultural/ne_110m_admin_0_countries.zip
-        double[][] us = { {-171.791110603, 18.91619, },
+        //Start building the filter for the Twitter stream
+        //USA bounding box from http//www.naturalearthdata.com/download/110m/cultural/ne_110m_admin_0_countries.zip
+        double[][] USA = { {-171.791110603, 18.91619, },
                 { -66.96466, 71.3577635769,  } };
 
         FilterQuery fq = new FilterQuery();
-        fq.language("en");
-        fq.locations(us);
 
+        //Set filter to English and add bounding box coordinates
+        fq.language("en");
+        fq.locations(USA);
+
+        //Open the Twitter API stream using the cb auth object
         TwitterStream twitterStream = new TwitterStreamFactory(cb.build()).getInstance();
 
+        //Add the listener using our implemention of StatusListener
         twitterStream.addListener(listener);
 
+        //Filter the stream
         twitterStream.filter(fq);
 
-        int fileNum = num.incrementAndGet();
+        //Start of thread writer
         File file;
         FileWriter fw;
         BufferedWriter bw;
         String url;
         URLEntity[] urlEntities;
+        int fileNum = num.incrementAndGet();
 
         while(fileNum < 10) {
             file = new File(String.format("%03d", fileNum) +".json");
@@ -138,6 +147,6 @@ public class Tcrawler {
         }
 
         System.exit(0);
-    }
+    }  //main()
 
-}
+}  //public class Tcrawler
