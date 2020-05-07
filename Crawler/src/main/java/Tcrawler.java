@@ -46,9 +46,13 @@ public class Tcrawler {
                 .setOAuthAccessToken("42011375-weTQ4bvTir50lNUwbJYxwGckVolxQXf6kemrnTVdW")
                 .setOAuthAccessTokenSecret("IhTUGURpvkMKGu9KKOOqoBsCuTTHGemb5ss3noK6GkEFj");
 
-
+        //Our implemention of StatusListener. Twitter4J will use this to create a thread, consuming the stream.
         StatusListener listener = new StatusListener() {
 
+            /**
+             * Our onException method just does what Twitter4j recommends (prints the stack trace)
+             * @param ex is the exception thrown
+             */
             @Override
             public void onException(Exception ex) {
                 ex.printStackTrace();
@@ -66,13 +70,16 @@ public class Tcrawler {
             public void onStallWarning(StallWarning warning) {
             }
 
+            /**
+             * Our onStatus method checks if a status on the stream is geolocation enabled. If so, it adds it to the
+             * blocking queue. If not, it does nothing with it.
+             * @param status is a new status received from the stream
+             */
             @Override
             public void onStatus(Status status) {
-                //synchronized (lock) {
                     if (status.getGeoLocation() != null) {
                         statuses.add(status);
                     }
-                //}
             }
 
             @Override
@@ -94,7 +101,6 @@ public class Tcrawler {
 
         twitterStream.filter(fq);
         int length;
-        int count = 0;
         String url;
 
         while (file.length() < TEN_MB) {
@@ -123,16 +129,11 @@ public class Tcrawler {
                     }
 
                     bw.write(obj.toJSONString() + "\n");
-                    count++;
                 }
                 tweets.clear();
             }
         }
         bw.close();
-
-
-
-
 
         System.exit(0);
     }
