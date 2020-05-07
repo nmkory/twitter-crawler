@@ -8,18 +8,31 @@ import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Tcrawler {
-    //Default variable for creating json files
+    //Variable for creating json files for Part B
     private static final int TEN_MB = 10000 * 1024;
+    //Variable for creating json files for grading
+    private static final int TWENTY_KB = 20 * 1024;
     //Data structure for class implementing StatusListener streaming API
     private static LinkedBlockingQueue<Status> statuses = new LinkedBlockingQueue<Status>();
     //Data structure to dump API statuses into
     private static ArrayList<Status> tweets = new ArrayList<Status>();
 
-    //Method that returns data structure from Twitter4j API object (written to adhere to Twitter4j standards)
+    /**
+     * crawlURL returns data structure from Twitter4j API object (written to adhere to Twitter4j standards)
+     * @param tweet is a status from the Twitter4j API
+     * @return URLEntity[] which is an array of URLs that we can use so as to not clog the Twitter4j API
+     */
     public URLEntity[] crawlURL(Status tweet) {
         return tweet.getURLEntities();
-    }
+    }  //crawlURL()
 
+    /**
+     * main runs the crawler, generating json files based on English language tweets with geolocation enabled inside
+     * bounding box GPS coordinates around the United States of America
+     * @param args command line arguments that determine the size and number of the json files generated
+     *             (defaults to 10 20KB files if not provided for grading; 200 10MB - 2GB - generated for Part B)
+     * @throws IOException if bad things happen
+     */
     public static void main(String args[]) throws IOException {
         int fileNum = 001;
         File file = new File(String.format("%03d", fileNum) +".json");
