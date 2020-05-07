@@ -6,25 +6,19 @@ import org.json.simple.JSONObject;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Tcrawler {
+    //Variable for tracking and creating files
+    public static final AtomicInteger num = new AtomicInteger(-1);
     //Variable for creating json files for Part B
     private static final int TEN_MB = 10000 * 1024;
     //Variable for creating json files for grading
-    private static final int TWENTY_KB = 20 * 1024;
+    private static final int TEN_KB = 10 * 1024;
     //Data structure for class implementing StatusListener streaming API
     private static LinkedBlockingQueue<Status> statuses = new LinkedBlockingQueue<Status>();
     //Data structure to dump API statuses into
     private static ArrayList<Status> tweets = new ArrayList<Status>();
-
-    /**
-     * crawlURL returns data structure from Twitter4j API object (written to adhere to Twitter4j standards)
-     * @param tweet is a status from the Twitter4j API
-     * @return URLEntity[] which is an array of URLs that we can use so as to not clog the Twitter4j API
-     */
-    public URLEntity[] crawlURL(Status tweet) {
-        return tweet.getURLEntities();
-    }  //crawlURL()
 
     /**
      * main runs the crawler, generating json files based on English language tweets with geolocation enabled inside
@@ -34,12 +28,6 @@ public class Tcrawler {
      * @throws IOException if bad things happen
      */
     public static void main(String args[]) throws IOException {
-        int fileNum = 001;
-        File file = new File(String.format("%03d", fileNum) +".json");
-        FileWriter fw = new FileWriter(file);
-        BufferedWriter bw = new BufferedWriter(fw);
-
-
         ConfigurationBuilder cb = new ConfigurationBuilder();
         cb.setDebugEnabled(true)
                 .setOAuthConsumerKey("LT4IPByNOJS6RctWDBHN0Favi")
@@ -101,40 +89,53 @@ public class Tcrawler {
         twitterStream.addListener(listener);
 
         twitterStream.filter(fq);
-        int length;
+
+        int fileNum = num.incrementAndGet();
+        File file;
+        FileWriter fw;
+        BufferedWriter bw;
         String url;
+        URLEntity[] urlEntities;
 
-        while (file.length() < TEN_MB) {
-            statuses.drainTo(tweets);
-            
-            for (Status tweet : tweets) {
-                JSONObject obj = new JSONObject();
-                obj.put("Text", tweet.getText());
-                obj.put("Timestamp", tweet.getCreatedAt());
-                obj.put("Geolocation", tweet.getGeoLocation());
-                obj.put("User", tweet.getUser().getScreenName());
+        while(fileNum < 10) {
+            file = new File(String.format("%03d", fileNum) +".json");
+            fw = new FileWriter(file);
+            bw = new BufferedWriter(fw);
 
-                length = tweet.getURLEntities().length;
-                if (length > 0) {
-                    try {
-                        url = tweet.getURLEntities()[0].getExpandedURL();
-                        obj.put("URL", url);
-                        obj.put("URLTitle", Jsoup.connect(url).get().title());
-                    } catch (NullPointerException ex) {
-                        ex.printStackTrace();
-                    } catch (HttpStatusException ex) {
-                        obj.put("URLTitle", "404 Not Found");
-                        ex.printStackTrace();
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
+            while (file.length() < TEN_KB) {
+                statuses.drainTo(tweets);
+
+                for (Status tweet : tweets) {
+                    JSONObject obj = new JSONObject();
+                    obj.put("Text", tweet.getText());
+                    obj.put("Timestamp", tweet.getCreatedAt());
+                    obj.put("Geolocation", tweet.getGeoLocation());
+                    obj.put("User", tweet.getUser().getScreenName());
+
+                    urlEntities = tweet.getURLEntities();
+                    if (urlEntities.length > 0) {
+                        try {
+                            url = urlEntities[0].getExpandedURL();
+                            obj.put("URL", url);
+                            obj.put("URLTitle", Jsoup.connect(url).get().title());
+                        } catch (NullPointerException ex) {
+                            ex.printStackTrace();
+                        } catch (HttpStatusException ex) {
+                            obj.put("URLTitle", "404 Not Found");
+                            ex.printStackTrace();
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
                     }
-                }
 
-                bw.write(obj.toJSONString() + "\n");
+                    bw.write(obj.toJSONString() + "\n");
+                }
+                tweets.clear();
             }
-            tweets.clear();
+            bw.close();
+
+            fileNum = num.incrementAndGet();
         }
-        bw.close();
 
         System.exit(0);
     }
