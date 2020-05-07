@@ -5,21 +5,22 @@ import twitter4j.conf.ConfigurationBuilder;
 import org.json.simple.JSONObject;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.LinkedTransferQueue;
 
 public class Tcrawler {
+    //Default variable for creating json files
     private static final int TEN_MB = 10000 * 1024;
-    //private static final Object lock = new Object();
+    //Data structure for class implementing StatusListener streaming API
     private static LinkedBlockingQueue<Status> statuses = new LinkedBlockingQueue<Status>();
+    //Data structure to dump API statuses into
     private static ArrayList<Status> tweets = new ArrayList<Status>();
 
+    //Method that returns data structure from Twitter4j API object (written to adhere to Twitter4j standards)
     public URLEntity[] crawlURL(Status tweet) {
         return tweet.getURLEntities();
     }
 
-    public static void main(String args[]) throws TwitterException, FileNotFoundException, IOException {
+    public static void main(String args[]) throws IOException {
         int fileNum = 001;
         File file = new File(String.format("%03d", fileNum) +".json");
         FileWriter fw = new FileWriter(file);
