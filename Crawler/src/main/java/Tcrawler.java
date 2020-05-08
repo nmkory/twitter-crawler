@@ -17,7 +17,8 @@ public class Tcrawler {
     private static final int TEN_KB = 10 * 1024;
     //Data structure for class implementing StatusListener streaming API
     private static LinkedBlockingQueue<Status> statuses = new LinkedBlockingQueue<Status>();
-
+    private static int numKB = TEN_KB;
+    private static int numJSON = 3;
 
     /**
      * main runs the crawler, generating json files based on English language tweets with geolocation enabled inside
@@ -27,6 +28,25 @@ public class Tcrawler {
      * @throws IOException if bad things happen
      */
     public static void main(String args[]) throws InterruptedException {
+        if (args.length == 2) {
+            try {
+                int a = Integer.parseInt(args[0]);
+                int b = Integer.parseInt(args[1]);
+                if ((a > 0) && (b > 0)) {
+                    numJSON = a;
+                    numKB = b * 1024;
+                    System.out.println("Generating json files - "+ a +" files at "+ b +" KB each.");
+                }
+                else {
+                    System.out.println("Invalid input. Generating default json files for grading - 3 files at 10 KB each.");
+                }
+            } catch (NumberFormatException ex) {
+                System.out.println("Invalid input. Generating default json files for grading - 3 files at 10 KB each.");
+            }
+        }
+        else {
+            System.out.println("Generating default json files for grading - 3 files at 10 KB each.");
+        }
         //Generate the ConfigurationBuilder object for connection to Twitter API
         //Nicholas Kory's Twitter dev keys, do not share
         ConfigurationBuilder cb = new ConfigurationBuilder();
@@ -97,6 +117,7 @@ public class Tcrawler {
         //Filter the stream
         twitterStream.filter(fq);
 
+        //Generate threads to read from stream and write to files.
         TcrawlerWriter t1 = new TcrawlerWriter();
         TcrawlerWriter t2 = new TcrawlerWriter();
         t1.start();
@@ -104,66 +125,76 @@ public class Tcrawler {
         t1.join();
         t2.join();
 
-
         System.exit(0);
     }  //main()
 
+    //Static nested class TcrawlerWriter creates threads that read from the Twitter API and writes to files.
     static class TcrawlerWriter extends Thread {
         public void run() {
+            //File writing thread, needs to be wrapped in try, catch
             try {
-                //Start of thread writer
                 File file;
                 FileWriter fw;
                 BufferedWriter bw;
+                //Capture the url from Twitter4j to not bug API
                 String url;
+                //Array to move urls from Twitter4j to not bug API
                 URLEntity[] urlEntities;
                 int fileNum = num.incrementAndGet();
                 //Data structure to dump API statuses into
                 ArrayList<Status> tweets = new ArrayList<Status>();
 
-                while (fileNum < 3) {
+                while (fileNum < numJSON) {
                     file = new File(String.format("%03d", fileNum) + ".json");
                     fw = new FileWriter(file);
                     bw = new BufferedWriter(fw);
 
-                    while (file.length() < TEN_KB) {
+                    while (file.length() < numKB) {
+                        //Atomic operation, blocks on if being used and waits for blocking queue to be non empty.
                         statuses.drainTo(tweets);
 
+                        //For every tweet pulled from the blocking queue
                         for (Status tweet : tweets) {
+                            //Generate a JSON object and start populating it
                             JSONObject obj = new JSONObject();
                             obj.put("Text", tweet.getText());
                             obj.put("Timestamp", tweet.getCreatedAt());
                             obj.put("Geolocation", tweet.getGeoLocation());
                             obj.put("User", tweet.getUser().getScreenName());
 
+                            //Call Twitter4j API to get the URLs (if any)
                             urlEntities = tweet.getURLEntities();
                             if (urlEntities.length > 0) {
+                                //Try to see if the URL is valid
                                 try {
+                                    //Convert only the first URL to its expanded form (dump the Twitter URL format)
                                     url = urlEntities[0].getExpandedURL();
                                     obj.put("URL", url);
                                     obj.put("URLTitle", Jsoup.connect(url).get().title());
                                 } catch (NullPointerException ex) {
                                     ex.printStackTrace();
                                 } catch (HttpStatusException ex) {
+                                    //If jSoup fails, give a stack trace and list URL Title as a 404 error
                                     obj.put("URLTitle", "404 Not Found");
                                     ex.printStackTrace();
                                 } catch (IOException ex) {
                                     ex.printStackTrace();
                                 }
                             }
-
+                            //Write the json string to file
                             bw.write(obj.toJSONString() + "\n");
                         }
                         tweets.clear();
                     }
                     bw.close();
 
+                    //Get the next file number and see if we need to farm more tweets.
                     fileNum = num.incrementAndGet();
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
         }
-    }
+    }  ////Static nested class TcrawlerWriter
 
 }  //public class Tcrawler
