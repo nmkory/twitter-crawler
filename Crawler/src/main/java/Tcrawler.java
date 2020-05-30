@@ -10,14 +10,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Tcrawler {
     //Variable for tracking and creating files
-    public static final AtomicInteger num = new AtomicInteger(-1);
+    public static final AtomicInteger num = new AtomicInteger(1);
     //Variable for creating json files for Part B
     private static final int TEN_MB = 10000 * 1024;
     //Variable for creating json files for grading
     private static final int TEN_KB = 10 * 1024;
     //Data structure for class implementing StatusListener streaming API
     private static LinkedBlockingQueue<Status> statuses = new LinkedBlockingQueue<Status>();
-    private static int numKB = TEN_KB;
+    private static int numKB = TEN_MB;
     private static int numJSON = 3;
 
     /**
