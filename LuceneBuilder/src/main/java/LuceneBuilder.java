@@ -17,7 +17,7 @@ public class LuceneBuilder {
         File dir = new File("../Crawler");
 
         //Get the file names for the json objects therein
-        File [] jsonFiles = dir.listFiles((dir1, filename) -> filename.endsWith(".json"));
+        File[] jsonFiles = dir.listFiles((dir1, filename) -> filename.endsWith(".json"));
 
         //for each new line delimited json file in the file directory
         for (File jsonFile : jsonFiles) {
@@ -28,5 +28,6 @@ public class LuceneBuilder {
             }
             br.close();
 
+        }
     }
 }
