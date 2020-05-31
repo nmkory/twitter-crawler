@@ -11,7 +11,6 @@ import java.io.*;
 
 public class LuceneBuilder {
 
-
     public IndexWriter getIndexWriter(String dir) throws IOException {
         Directory indexDir = FSDirectory.open(new File(dir).toPath());
         IndexWriterConfig luceneConfig = new IndexWriterConfig(new StandardAnalyzer());
@@ -32,11 +31,15 @@ public class LuceneBuilder {
         //Get the file names for the json objects therein
         File[] jsonFiles = dir.listFiles((dir1, filename) -> filename.endsWith(".json"));
 
-        //for each new line delimited json file in the file directory
+        //For each new line delimited json file in the file directory
         for (File jsonFile : jsonFiles) {
 
+            //Set the buffered reader
             br = new BufferedReader(new FileReader(jsonFile.getCanonicalPath()));
+
+            //While read lines are not null
             while ((jsonString = br.readLine()) != null) {
+                //Try to parse it
                 try {
                     jsonObject = (JSONObject) parser.parse(jsonString);
                     System.out.println(jsonObject.get("User"));
@@ -45,6 +48,7 @@ public class LuceneBuilder {
                 }
 
             }
+            //Close the open buffered reader and open the next json file
             br.close();
         }
     }
