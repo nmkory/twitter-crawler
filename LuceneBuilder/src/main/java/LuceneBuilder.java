@@ -1,20 +1,30 @@
-import org.json.simple.JSONArray;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.store.FSDirectory;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
 
 public class LuceneBuilder {
-    public static void main(String args[]) throws IOException, ParseException {
-        parseJSONFiles();
+
+
+    public IndexWriter getIndexWriter(String dir) throws IOException {
+        Directory indexDir = FSDirectory.open(new File(dir).toPath());
+        IndexWriterConfig luceneConfig = new IndexWriterConfig(new StandardAnalyzer());
+
+        return(new IndexWriter(indexDir, luceneConfig));
     }
+
 
     public static void parseJSONFiles() throws IOException, ParseException {
         BufferedReader br;
-        String jsonObject;
+        String jsonString;
         JSONParser parser = new JSONParser();
+        JSONObject jsonObject;
 
         //Go the Crawler directory
         File dir = new File("../Crawler");
@@ -26,13 +36,20 @@ public class LuceneBuilder {
         for (File jsonFile : jsonFiles) {
 
             br = new BufferedReader(new FileReader(jsonFile.getCanonicalPath()));
-            while ((jsonObject = br.readLine()) != null) {
+            while ((jsonString = br.readLine()) != null) {
+                try {
+                    jsonObject = (JSONObject) parser.parse(jsonString);
+                    System.out.println(jsonObject.get("User"));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
 
-                JSONObject json = (JSONObject) parser.parse(jsonObject);
-                System.out.println("Record:\t" + json);
             }
             br.close();
-
         }
+    }
+
+    public static void main(String args[]) throws IOException, ParseException {
+        parseJSONFiles();
     }
 }
