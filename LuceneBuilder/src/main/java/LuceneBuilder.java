@@ -11,28 +11,42 @@ import org.json.simple.parser.ParseException;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class LuceneBuilder {
+    static final String INDEX_DIR = "../index";
+    static final String JSON_DIR = "../Crawler";
 
-    public static IndexWriter getIndexWriter(String dir) throws IOException {
+    String indexDir;
+    String JSONdir;
+    IndexWriter indexWriter = null;
+
+    public LuceneBuilder(String indexDir, String JSONdir) {
+        this.indexDir = indexDir;
+        this.JSONdir = JSONdir;
+    }
+
+    public LuceneBuilder() {
+        this.indexDir = INDEX_DIR;
+        this.JSONdir = JSON_DIR;
+    }
+
+    public IndexWriter getIndexWriter(String indexDir) throws IOException {
         //Directory indexDir = new RAMDirectory(); //use to put directory in RAM
-        Directory indexDir = FSDirectory.open(new File(dir).toPath());
+        Directory dir = FSDirectory.open(new File(indexDir).toPath());
         IndexWriterConfig luceneConfig = new IndexWriterConfig(new StandardAnalyzer());
 
-        return(new IndexWriter(indexDir, luceneConfig));
+        return(new IndexWriter(dir, luceneConfig));
     }
 
 
-    public static ArrayList <JSONObject> parseJSONFiles() throws IOException, ParseException {
+    public ArrayList <JSONObject> parseJSONFiles(String JSONdir) throws IOException {
         BufferedReader br;
         String jsonString;
         JSONParser parser = new JSONParser();
-        //JSONObject jsonObject;
-        ArrayList <JSONObject> jsonArray = new ArrayList<JSONObject>();
+        ArrayList <JSONObject> jsonArrayList = new ArrayList<JSONObject>();
 
         //Go the Crawler directory
-        File dir = new File("../Crawler");
+        File dir = new File(JSONdir);
 
         //Get the file names for the json objects therein
         File[] jsonFiles = dir.listFiles((dir1, filename) -> filename.endsWith(".json"));
@@ -47,7 +61,7 @@ public class LuceneBuilder {
             while ((jsonString = br.readLine()) != null) {
                 //Try to parse it
                 try {
-                    jsonArray.add((JSONObject) parser.parse(jsonString));
+                    jsonArrayList.add((JSONObject) parser.parse(jsonString));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
@@ -56,10 +70,10 @@ public class LuceneBuilder {
             //Close the open buffered reader and open the next json file
             br.close();
         }
-        return jsonArray;
+        return jsonArrayList;
     }
 
-    public static Document buildDocument(JSONObject jsonObject) {
+    public Document buildDocument(JSONObject jsonObject) {
         Document doc = new Document();
 
         doc.add(new TextField("text",(String) jsonObject.get("Text"), Field.Store.NO));
@@ -75,18 +89,28 @@ public class LuceneBuilder {
         return doc;
     }
 
-    public static void indexTweets(ArrayList <JSONObject> jsonArray, IndexWriter indexWriter) {
+    public void indexTweets(ArrayList <JSONObject> jsonArrayList, IndexWriter indexWriter) {
         Document doc;
-        for (JSONObject jsonObject : jsonArray) {
+        for (JSONObject jsonObject : jsonArrayList) {
             doc = buildDocument(jsonObject);
-            System.out.println(doc.getFields());
+            try {
+                indexWriter.addDocument(doc);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
         }
     }
 
-    public static void main(String args[]) throws IOException, ParseException {
-        IndexWriter indexWriter = getIndexWriter("../index");
-        ArrayList <JSONObject> jsonArray = parseJSONFiles();
-        indexTweets(jsonArray, indexWriter);
+    public void buildIndex() throws IOException, ParseException {
+        IndexWriter indexWriter = getIndexWriter(indexDir);
+        ArrayList <JSONObject> jsonArrayList = parseJSONFiles(JSONdir);
+        indexTweets(jsonArrayList, indexWriter);
+        indexWriter.close();
+    }
 
+    public static void main(String args[]) throws IOException, ParseException {
+        LuceneBuilder luceneIndex = new LuceneBuilder();
+        luceneIndex.buildIndex();
     }
 }
