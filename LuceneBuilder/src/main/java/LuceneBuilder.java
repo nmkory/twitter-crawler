@@ -97,8 +97,13 @@ public class LuceneBuilder {
             br.close();
         }
         return jsonArrayList;
-    }
+    }  //parseJSONFiles()
 
+    /**
+     * buildDocument() builds a document for the index from the JSON object of a collected Tweet
+     * @param jsonObject is a farmed Tweet
+     * @return a document of that Tweet
+     */
     public Document buildDocument(JSONObject jsonObject) {
         String url;
         Document doc = new Document();
@@ -118,8 +123,13 @@ public class LuceneBuilder {
         doc.add(new DoublePoint("longitude", (double) jsonObject.get("Longitude")));
 
         return doc;
-    }
+    }  //buildDocument()
 
+    /**
+     * indexTweets() adds json Tweets to the Lucene index
+     * @param jsonArrayList is an Array List of JSON objects, each one is a Tweet
+     * @param indexWriter is the index writer for the Lucene index we're working with
+     */
     public void indexTweets(ArrayList <JSONObject> jsonArrayList, IndexWriter indexWriter) {
         Document doc;
         for (JSONObject jsonObject : jsonArrayList) {
@@ -131,17 +141,26 @@ public class LuceneBuilder {
             }
 
         }
-    }
+    }  //indexTweets()
 
+    /**
+     * buildIndex() uses the directory information to build or append a Lucene index
+     * @throws IOException for any number of issues related to opening files that cannot be found
+     */
     public void buildIndex() throws IOException {
         indexWriter = getIndexWriter(indexDir);
         ArrayList <JSONObject> jsonArrayList = parseJSONFiles(JSONdir);
         indexTweets(jsonArrayList, indexWriter);
         indexWriter.close();
-    }
+    } //buildIndex()
 
+    /**
+     * main used to test the LuceneBuilder class
+     * @param args from command line, should expect nothing
+     * @throws IOException when opening or closing a file goes wrong
+     */
     public static void main(String[] args) throws IOException {
         LuceneBuilder luceneIndex = new LuceneBuilder();
         luceneIndex.buildIndex();
-    }
-}
+    }  //main()
+}  //public class LuceneBuilder
