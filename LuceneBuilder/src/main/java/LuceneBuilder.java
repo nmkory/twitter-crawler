@@ -1,17 +1,20 @@
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.*;
 
 public class LuceneBuilder {
-    public static void main(String args[]) throws IOException {
+    public static void main(String args[]) throws IOException, ParseException {
         parseJSONFile();
     }
 
-    public static void parseJSONFile() throws IOException {
+    public static void parseJSONFile() throws IOException, ParseException {
         BufferedReader br;
         String jsonObject;
+        JSONParser parser = new JSONParser();
 
         //Go the Crawler directory
         File dir = new File("../Crawler");
@@ -24,7 +27,9 @@ public class LuceneBuilder {
 
             br = new BufferedReader(new FileReader(jsonFile.getCanonicalPath()));
             while ((jsonObject = br.readLine()) != null) {
-                System.out.println("Record:\t" + jsonObject);
+
+                JSONObject json = (JSONObject) parser.parse(jsonObject);
+                System.out.println("Record:\t" + json);
             }
             br.close();
 

@@ -5,19 +5,20 @@ import twitter4j.conf.ConfigurationBuilder;
 import org.json.simple.JSONObject;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Tcrawler {
     //Variable for tracking and creating files
-    public static final AtomicInteger num = new AtomicInteger(1);
+    public static final AtomicInteger num = new AtomicInteger(-1);
     //Variable for creating json files for Part B
     private static final int TEN_MB = 10000 * 1024;
     //Variable for creating json files for grading
     private static final int TEN_KB = 10 * 1024;
     //Data structure for class implementing StatusListener streaming API
     private static LinkedBlockingQueue<Status> statuses = new LinkedBlockingQueue<Status>();
-    private static int numKB = TEN_MB;
+    private static int numKB = TEN_KB;
     private static int numJSON = 3;
 
     /**
@@ -158,8 +159,9 @@ public class Tcrawler {
                             //Generate a JSON object and start populating it
                             JSONObject obj = new JSONObject();
                             obj.put("Text", tweet.getText());
-                            obj.put("Timestamp", tweet.getCreatedAt());
-                            obj.put("Geolocation", tweet.getGeoLocation());
+                            obj.put("Timestamp", tweet.getCreatedAt().toString());
+                            obj.put("Latitude", tweet.getGeoLocation().getLatitude());
+                            obj.put("Longitude", tweet.getGeoLocation().getLongitude());
                             obj.put("User", tweet.getUser().getScreenName());
 
                             //Call Twitter4j API to get the URLs (if any)
