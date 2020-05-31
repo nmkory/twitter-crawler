@@ -12,7 +12,7 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.util.ArrayList;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
 public class LuceneBuilder {
     //Default directory for the index from LuceneBuilder class path
@@ -38,6 +38,7 @@ public class LuceneBuilder {
      * @param indexDir the directory where we will store the Lucene index
      * @param JSONdir the directory where we will get the JSON files farmed from Twitter
      */
+    @SuppressWarnings("unused")
     public LuceneBuilder(String indexDir, String JSONdir) {
         this.indexDir = indexDir;
         this.JSONdir = JSONdir;
