@@ -1,17 +1,22 @@
+import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.store.FSDirectory;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Date;
 
 public class LuceneBuilder {
 
-    public IndexWriter getIndexWriter(String dir) throws IOException {
+    public static IndexWriter getIndexWriter(String dir) throws IOException {
+        //Directory indexDir = new RAMDirectory(); //use to put directory in RAM
         Directory indexDir = FSDirectory.open(new File(dir).toPath());
         IndexWriterConfig luceneConfig = new IndexWriterConfig(new StandardAnalyzer());
 
@@ -19,11 +24,12 @@ public class LuceneBuilder {
     }
 
 
-    public static void parseJSONFiles() throws IOException, ParseException {
+    public static ArrayList <JSONObject> parseJSONFiles() throws IOException, ParseException {
         BufferedReader br;
         String jsonString;
         JSONParser parser = new JSONParser();
-        JSONObject jsonObject;
+        //JSONObject jsonObject;
+        ArrayList <JSONObject> jsonArray = new ArrayList<JSONObject>();
 
         //Go the Crawler directory
         File dir = new File("../Crawler");
@@ -41,8 +47,7 @@ public class LuceneBuilder {
             while ((jsonString = br.readLine()) != null) {
                 //Try to parse it
                 try {
-                    jsonObject = (JSONObject) parser.parse(jsonString);
-                    System.out.println(jsonObject.get("User"));
+                    jsonArray.add((JSONObject) parser.parse(jsonString));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
@@ -51,9 +56,30 @@ public class LuceneBuilder {
             //Close the open buffered reader and open the next json file
             br.close();
         }
+        return jsonArray;
+    }
+
+    public Document buildDocument(JSONObject jsonObject) {
+        Document doc = new Document();
+        doc.add(new TextField("text",(String) jsonObject.get("Text"), Field.Store.NO));
+        doc.add(new StringField("user",(String) jsonObject.get("User"), Field.Store.YES));
+        doc.add(new StringField("timestamp",(String) jsonObject.get("Timestamp"), Field.Store.YES));
+        doc.add(new NumericDocValuesField("timestamp", jsonObject.get("Timestamp")getTime()));
+
+
+
+        return doc;
+    }
+
+    public void indexTweets(ArrayList <JSONObject> jsonArray, IndexWriter indexWriter) {
+
     }
 
     public static void main(String args[]) throws IOException, ParseException {
-        parseJSONFiles();
+        IndexWriter indexWriter = getIndexWriter("../index");
+        ArrayList <JSONObject> jsonArray = parseJSONFiles();
+        for (JSONObject jsonObject : jsonArray) {
+            System.out.println(jsonObject.get("User"));
+        }
     }
 }

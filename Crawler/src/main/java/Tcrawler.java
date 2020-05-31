@@ -159,7 +159,8 @@ public class Tcrawler {
                             //Generate a JSON object and start populating it
                             JSONObject obj = new JSONObject();
                             obj.put("Text", tweet.getText());
-                            obj.put("Timestamp", tweet.getCreatedAt().toString());
+                            obj.put("Timestamp", tweet.getCreatedAt().getTime());
+                            obj.put("Datetime", tweet.getCreatedAt().toString());
                             obj.put("Latitude", tweet.getGeoLocation().getLatitude());
                             obj.put("Longitude", tweet.getGeoLocation().getLongitude());
                             obj.put("User", tweet.getUser().getScreenName());
