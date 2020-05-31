@@ -59,27 +59,34 @@ public class LuceneBuilder {
         return jsonArray;
     }
 
-    public Document buildDocument(JSONObject jsonObject) {
+    public static Document buildDocument(JSONObject jsonObject) {
         Document doc = new Document();
+
         doc.add(new TextField("text",(String) jsonObject.get("Text"), Field.Store.NO));
         doc.add(new StringField("user",(String) jsonObject.get("User"), Field.Store.YES));
-        doc.add(new StringField("timestamp",(String) jsonObject.get("Timestamp"), Field.Store.YES));
-        doc.add(new NumericDocValuesField("timestamp", jsonObject.get("Timestamp")getTime()));
-
-
+        doc.add(new StringField("datetime",(String) jsonObject.get("Datetime"), Field.Store.YES));
+        // Add as doc values field, so we can compute range facets
+        doc.add(new NumericDocValuesField("timestamp", (long) jsonObject.get("Timestamp")));
+        // Add as numeric field so we can drill-down
+        doc.add(new LongPoint("timestamp", (long) jsonObject.get("Timestamp")));
+        doc.add(new DoublePoint("latitude", (double) jsonObject.get("Latitude")));
+        doc.add(new DoublePoint("longitude", (double) jsonObject.get("Longitude")));
 
         return doc;
     }
 
-    public void indexTweets(ArrayList <JSONObject> jsonArray, IndexWriter indexWriter) {
-
+    public static void indexTweets(ArrayList <JSONObject> jsonArray, IndexWriter indexWriter) {
+        Document doc;
+        for (JSONObject jsonObject : jsonArray) {
+            doc = buildDocument(jsonObject);
+            System.out.println(doc.getFields());
+        }
     }
 
     public static void main(String args[]) throws IOException, ParseException {
         IndexWriter indexWriter = getIndexWriter("../index");
         ArrayList <JSONObject> jsonArray = parseJSONFiles();
-        for (JSONObject jsonObject : jsonArray) {
-            System.out.println(jsonObject.get("User"));
-        }
+        indexTweets(jsonArray, indexWriter);
+
     }
 }
