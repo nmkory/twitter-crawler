@@ -100,12 +100,16 @@ public class LuceneBuilder {
     }
 
     public Document buildDocument(JSONObject jsonObject) {
+        String url;
         Document doc = new Document();
 
         // Add as text field so the text is searchable, per TA
         doc.add(new TextField("text",(String) jsonObject.get("Text"), Field.Store.NO));
         doc.add(new StringField("user",(String) jsonObject.get("User"), Field.Store.YES));
         doc.add(new StringField("datetime",(String) jsonObject.get("Datetime"), Field.Store.YES));
+        if ((url = (String) jsonObject.get("URL")) != null) {
+            doc.add(new StringField("url", url, Field.Store.YES));
+        }
         // Add as doc values field so we can compute range facets
         doc.add(new NumericDocValuesField("timestamp", (long) jsonObject.get("Timestamp")));
         // Add as numeric field so we can drill-down
