@@ -5,6 +5,7 @@ import twitter4j.conf.ConfigurationBuilder;
 import org.json.simple.JSONObject;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -158,8 +159,10 @@ public class Tcrawler {
                             //Generate a JSON object and start populating it
                             JSONObject obj = new JSONObject();
                             obj.put("Text", tweet.getText());
-                            obj.put("Timestamp", tweet.getCreatedAt());
-                            obj.put("Geolocation", tweet.getGeoLocation());
+                            obj.put("Timestamp", tweet.getCreatedAt().getTime());
+                            obj.put("Datetime", tweet.getCreatedAt().toString());
+                            obj.put("Latitude", tweet.getGeoLocation().getLatitude());
+                            obj.put("Longitude", tweet.getGeoLocation().getLongitude());
                             obj.put("User", tweet.getUser().getScreenName());
 
                             //Call Twitter4j API to get the URLs (if any)
