@@ -8,10 +8,10 @@ import java.io.*;
 
 public class LuceneBuilder {
     public static void main(String args[]) throws IOException, ParseException {
-        parseJSONFile();
+        parseJSONFiles();
     }
 
-    public static void parseJSONFile() throws IOException, ParseException {
+    public static void parseJSONFiles() throws IOException, ParseException {
         BufferedReader br;
         String jsonObject;
         JSONParser parser = new JSONParser();
