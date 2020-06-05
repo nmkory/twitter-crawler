@@ -119,19 +119,21 @@ public class LuceneBuilder {
 
         // Add as text field so the text is searchable, per TA
         doc.add(new TextField("text",(String) jsonObject.get("Text"), Field.Store.YES));
-        doc.add(new StringField("user",(String) jsonObject.get("User"), Field.Store.YES));
-        doc.add(new StringField("datetime",(String) jsonObject.get("Datetime"), Field.Store.YES));
+        doc.add(new StoredField("user",(String) jsonObject.get("User")));
+        doc.add(new StoredField("datetime",(String) jsonObject.get("Datetime")));
+        doc.add(new StoredField("latitude", (double) jsonObject.get("Latitude")));
+        doc.add(new StoredField("longitude", (double) jsonObject.get("Longitude")));
         
         if ((url = (String) jsonObject.get("URL")) != null) {
-            doc.add(new StringField("url", url, Field.Store.YES));
+            doc.add(new StoredField("url", url));
         }
         // Add as doc values field so we can compute range facets and sort and score
         doc.add(new NumericDocValuesField("timestamp", (long) jsonObject.get("Timestamp")));
 
         // Add as numeric field so we can drill-down
-        doc.add(new LongPoint("timestamp", (long) jsonObject.get("Timestamp")));
-        doc.add(new DoublePoint("latitude", (double) jsonObject.get("Latitude")));
-        doc.add(new DoublePoint("longitude", (double) jsonObject.get("Longitude")));
+        doc.add(new LongPoint("time", (long) jsonObject.get("Timestamp")));
+        doc.add(new DoublePoint("lat", (double) jsonObject.get("Latitude")));
+        doc.add(new DoublePoint("long", (double) jsonObject.get("Longitude")));
 
         return doc;
     }  //buildDocument()
@@ -195,7 +197,7 @@ public class LuceneBuilder {
 
         for(ScoreDoc scoreDoc : hits.scoreDocs) {
             Document doc = luceneIndex.searcher.doc(scoreDoc.doc);
-            System.out.println(doc);
+            System.out.println(doc.get("user"));
         }
 
 
