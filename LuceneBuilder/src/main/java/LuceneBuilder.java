@@ -4,9 +4,13 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.queryparser.classic.QueryParser;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -28,6 +32,7 @@ public class LuceneBuilder {
     String JSONdir;
     IndexWriter indexWriter = null;
     IndexSearcher searcher = null;
+    QueryParser parser = null;
 
     /**
      * Default constructor
@@ -147,14 +152,21 @@ public class LuceneBuilder {
         }
     }  //indexTweets()
 
+    public TopDocs search(String q, int numResults) throws org.apache.lucene.queryparser.classic.ParseException,
+            IOException {
+        Query query = parser.parse(q);
+        return searcher.search(query, numResults);
+    }
+
     /**
-     * buildSearcher() builds the IndexSearcher object out of the existing index we created.
-     * @return a IndexSearcher object for the search method
+     * buildSearcher() builds the IndexSearcher and Parser out of the existing index we created. Uses "text" from
+     * Tweets are the default field when searching.
      * @throws IOException when opening the index goes wrong
      */
-    public IndexSearcher buildSearcher() throws IOException {
+    public void buildSearcher() throws IOException {
         IndexReader rdr = DirectoryReader.open(FSDirectory.open(new File(indexDir).toPath()));
-        return(new IndexSearcher(rdr));
+        searcher = new IndexSearcher(rdr);
+        parser = new QueryParser("text", new StandardAnalyzer());
     }  //buildSearcher()
 
     /**
@@ -173,9 +185,16 @@ public class LuceneBuilder {
      * @param args from command line, should expect nothing
      * @throws IOException when opening or closing a file goes wrong
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, org.apache.lucene.queryparser.classic.ParseException {
         LuceneBuilder luceneIndex = new LuceneBuilder();
         //luceneIndex.buildIndex();
-        luceneIndex.searcher = luceneIndex.buildSearcher();
+        luceneIndex.buildSearcher();
+        TopDocs docs = luceneIndex.search("covid", 10);
+        ScoreDoc[] hits = docs.scoreDocs;
+        for (ScoreDoc hit : hits) {
+            System.out.println(hit.score);
+        }
+
+
     }  //main()
 }  //public class LuceneBuilder
