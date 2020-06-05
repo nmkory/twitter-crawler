@@ -1,6 +1,9 @@
 import org.apache.lucene.document.*;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.store.FSDirectory;
@@ -24,6 +27,7 @@ public class LuceneBuilder {
     String indexDir;
     String JSONdir;
     IndexWriter indexWriter = null;
+    IndexSearcher searcher = null;
 
     /**
      * Default constructor
@@ -144,6 +148,16 @@ public class LuceneBuilder {
     }  //indexTweets()
 
     /**
+     * buildSearcher() builds the IndexSearcher object out of the existing index we created.
+     * @return a IndexSearcher object for the search method
+     * @throws IOException when opening the index goes wrong
+     */
+    public IndexSearcher buildSearcher() throws IOException {
+        IndexReader rdr = DirectoryReader.open(FSDirectory.open(new File(indexDir).toPath()));
+        return(new IndexSearcher(rdr));
+    }  //buildSearcher()
+
+    /**
      * buildIndex() uses the directory information to build or append a Lucene index
      * @throws IOException for any number of issues related to opening files that cannot be found
      */
@@ -161,6 +175,7 @@ public class LuceneBuilder {
      */
     public static void main(String[] args) throws IOException {
         LuceneBuilder luceneIndex = new LuceneBuilder();
-        luceneIndex.buildIndex();
+        //luceneIndex.buildIndex();
+        luceneIndex.searcher = luceneIndex.buildSearcher();
     }  //main()
 }  //public class LuceneBuilder
