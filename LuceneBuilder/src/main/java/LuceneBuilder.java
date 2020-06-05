@@ -118,14 +118,16 @@ public class LuceneBuilder {
         Document doc = new Document();
 
         // Add as text field so the text is searchable, per TA
-        doc.add(new TextField("text",(String) jsonObject.get("Text"), Field.Store.NO));
+        doc.add(new TextField("text",(String) jsonObject.get("Text"), Field.Store.YES));
         doc.add(new StringField("user",(String) jsonObject.get("User"), Field.Store.YES));
         doc.add(new StringField("datetime",(String) jsonObject.get("Datetime"), Field.Store.YES));
+        
         if ((url = (String) jsonObject.get("URL")) != null) {
             doc.add(new StringField("url", url, Field.Store.YES));
         }
-        // Add as doc values field so we can compute range facets
+        // Add as doc values field so we can compute range facets and sort and score
         doc.add(new NumericDocValuesField("timestamp", (long) jsonObject.get("Timestamp")));
+
         // Add as numeric field so we can drill-down
         doc.add(new LongPoint("timestamp", (long) jsonObject.get("Timestamp")));
         doc.add(new DoublePoint("latitude", (double) jsonObject.get("Latitude")));
@@ -187,13 +189,15 @@ public class LuceneBuilder {
      */
     public static void main(String[] args) throws IOException, org.apache.lucene.queryparser.classic.ParseException {
         LuceneBuilder luceneIndex = new LuceneBuilder();
-        //luceneIndex.buildIndex();
+        luceneIndex.buildIndex();
         luceneIndex.buildSearcher();
-        TopDocs docs = luceneIndex.search("covid", 10);
-        ScoreDoc[] hits = docs.scoreDocs;
-        for (ScoreDoc hit : hits) {
-            System.out.println(hit.score);
+        TopDocs hits = luceneIndex.search("covid", 10);
+
+        for(ScoreDoc scoreDoc : hits.scoreDocs) {
+            Document doc = luceneIndex.searcher.doc(scoreDoc.doc);
+            System.out.println(doc);
         }
+
 
 
     }  //main()
