@@ -159,13 +159,25 @@ public class LuceneBuilder {
         }
     }  //indexTweets()
 
+    /**
+     * search() looks in the Lucene index based on the search term and returns what it found. Results are boosted if
+     * they are more recent.
+     * @param q a string that is what the user is searching for. Looks at Tweet text.
+     * @param numResults the number of max results we want.
+     * @return TopDocs object that has the search results in order.
+     * @throws org.apache.lucene.queryparser.classic.ParseException a ParseException thrown when the Lucene parser goes
+     * haywire (this is a different parse exception from JSON so added the library directly
+     * @throws IOException is thrown when the index cannot be located
+     */
     public TopDocs search(String q, int numResults) throws org.apache.lucene.queryparser.classic.ParseException,
             IOException {
         Query termQuery = parser.parse(q);
+        // Build a boost based on the timestamp doc value we retained and indexed
         FunctionQuery dateBoost = new FunctionQuery (new LongFieldSource("timestamp"));
+        // Use default boost values
         CustomScoreQuery query = new CustomScoreQuery(termQuery, dateBoost);
         return searcher.search(query, numResults);
-    }
+    }  //search()
 
     /**
      * buildSearcher() builds the IndexSearcher and Parser out of the existing index we created. Uses "text" from
@@ -198,14 +210,17 @@ public class LuceneBuilder {
         LuceneBuilder luceneIndex = new LuceneBuilder();
         //luceneIndex.buildIndex();
         luceneIndex.buildSearcher();
-        TopDocs hits = luceneIndex.search("black lives matter", 10);
+        TopDocs hits = luceneIndex.search("covid19", 100);
 
         for(ScoreDoc scoreDoc : hits.scoreDocs) {
             Document doc = luceneIndex.searcher.doc(scoreDoc.doc);
-            System.out.println("score: " + scoreDoc.score + " doc: " + doc);
+            System.out.println(doc.get("text"));
+            System.out.println("@" + doc.get("user"));
+            System.out.println(doc.get("datetime"));
+            System.out.println(doc.get("latitude"));
+            System.out.println(doc.get("longitude"));
+            System.out.println(doc.get("url"));
+            System.out.println();
         }
-
-
-
     }  //main()
 }  //public class LuceneBuilder
