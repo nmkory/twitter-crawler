@@ -1,9 +1,19 @@
 import org.apache.lucene.document.*;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.queries.CustomScoreQuery;
+import org.apache.lucene.queries.function.FunctionQuery;
+import org.apache.lucene.queries.function.valuesource.LongFieldSource;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.queryparser.classic.QueryParser;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -24,6 +34,8 @@ public class LuceneBuilder {
     String indexDir;
     String JSONdir;
     IndexWriter indexWriter = null;
+    IndexSearcher searcher = null;
+    QueryParser parser = null;
 
     /**
      * Default constructor
@@ -109,18 +121,22 @@ public class LuceneBuilder {
         Document doc = new Document();
 
         // Add as text field so the text is searchable, per TA
-        doc.add(new TextField("text",(String) jsonObject.get("Text"), Field.Store.NO));
-        doc.add(new StringField("user",(String) jsonObject.get("User"), Field.Store.YES));
-        doc.add(new StringField("datetime",(String) jsonObject.get("Datetime"), Field.Store.YES));
+        doc.add(new TextField("text",(String) jsonObject.get("Text"), Field.Store.YES));
+        doc.add(new StoredField("user",(String) jsonObject.get("User")));
+        doc.add(new StoredField("datetime",(String) jsonObject.get("Datetime")));
+        doc.add(new StoredField("latitude", (double) jsonObject.get("Latitude")));
+        doc.add(new StoredField("longitude", (double) jsonObject.get("Longitude")));
+        
         if ((url = (String) jsonObject.get("URL")) != null) {
-            doc.add(new StringField("url", url, Field.Store.YES));
+            doc.add(new StoredField("url", url));
         }
-        // Add as doc values field so we can compute range facets
+        // Add as doc values field so we can compute range facets and sort and score
         doc.add(new NumericDocValuesField("timestamp", (long) jsonObject.get("Timestamp")));
+
         // Add as numeric field so we can drill-down
-        doc.add(new LongPoint("timestamp", (long) jsonObject.get("Timestamp")));
-        doc.add(new DoublePoint("latitude", (double) jsonObject.get("Latitude")));
-        doc.add(new DoublePoint("longitude", (double) jsonObject.get("Longitude")));
+        doc.add(new LongPoint("time", (long) jsonObject.get("Timestamp")));
+        doc.add(new DoublePoint("lat", (double) jsonObject.get("Latitude")));
+        doc.add(new DoublePoint("long", (double) jsonObject.get("Longitude")));
 
         return doc;
     }  //buildDocument()
@@ -144,6 +160,37 @@ public class LuceneBuilder {
     }  //indexTweets()
 
     /**
+     * search() looks in the Lucene index based on the search term and returns what it found. Results are boosted if
+     * they are more recent.
+     * @param q a string that is what the user is searching for. Looks at Tweet text.
+     * @param numResults the number of max results we want.
+     * @return TopDocs object that has the search results in order.
+     * @throws org.apache.lucene.queryparser.classic.ParseException a ParseException thrown when the Lucene parser goes
+     * haywire (this is a different parse exception from JSON so added the library directly
+     * @throws IOException is thrown when the index cannot be located
+     */
+    public TopDocs search(String q, int numResults) throws org.apache.lucene.queryparser.classic.ParseException,
+            IOException {
+        Query termQuery = parser.parse(q);
+        // Build a boost based on the timestamp doc value we retained and indexed
+        FunctionQuery dateBoost = new FunctionQuery (new LongFieldSource("timestamp"));
+        // Use default boost values
+        CustomScoreQuery query = new CustomScoreQuery(termQuery, dateBoost);
+        return searcher.search(query, numResults);
+    }  //search()
+
+    /**
+     * buildSearcher() builds the IndexSearcher and Parser out of the existing index we created. Uses "text" from
+     * Tweets are the default field when searching.
+     * @throws IOException when opening the index goes wrong
+     */
+    public void buildSearcher() throws IOException {
+        IndexReader rdr = DirectoryReader.open(FSDirectory.open(new File(indexDir).toPath()));
+        searcher = new IndexSearcher(rdr);
+        parser = new QueryParser("text", new StandardAnalyzer());
+    }  //buildSearcher()
+
+    /**
      * buildIndex() uses the directory information to build or append a Lucene index
      * @throws IOException for any number of issues related to opening files that cannot be found
      */
@@ -159,8 +206,21 @@ public class LuceneBuilder {
      * @param args from command line, should expect nothing
      * @throws IOException when opening or closing a file goes wrong
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, org.apache.lucene.queryparser.classic.ParseException {
         LuceneBuilder luceneIndex = new LuceneBuilder();
-        luceneIndex.buildIndex();
+        //luceneIndex.buildIndex();
+        luceneIndex.buildSearcher();
+        TopDocs hits = luceneIndex.search("covid19", 100);
+
+        for(ScoreDoc scoreDoc : hits.scoreDocs) {
+            Document doc = luceneIndex.searcher.doc(scoreDoc.doc);
+            System.out.println(doc.get("text"));
+            System.out.println("@" + doc.get("user"));
+            System.out.println(doc.get("datetime"));
+            System.out.println(doc.get("latitude"));
+            System.out.println(doc.get("longitude"));
+            System.out.println(doc.get("url"));
+            System.out.println();
+        }
     }  //main()
 }  //public class LuceneBuilder
