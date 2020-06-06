@@ -194,6 +194,7 @@ public class LuceneBuilder {
      * buildIndex() uses the directory information to build or append a Lucene index
      * @throws IOException for any number of issues related to opening files that cannot be found
      */
+    @SuppressWarnings("unused")
     public void buildIndex() throws IOException {
         indexWriter = getIndexWriter(indexDir);
         ArrayList <JSONObject> jsonArrayList = parseJSONFiles(JSONdir);
