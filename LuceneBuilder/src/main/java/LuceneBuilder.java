@@ -3,6 +3,9 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.queries.CustomScoreQuery;
+import org.apache.lucene.queries.function.FunctionQuery;
+import org.apache.lucene.queries.function.valuesource.LongFieldSource;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -158,7 +161,9 @@ public class LuceneBuilder {
 
     public TopDocs search(String q, int numResults) throws org.apache.lucene.queryparser.classic.ParseException,
             IOException {
-        Query query = parser.parse(q);
+        Query termQuery = parser.parse(q);
+        FunctionQuery dateBoost = new FunctionQuery (new LongFieldSource("timestamp"));
+        CustomScoreQuery query = new CustomScoreQuery(termQuery, dateBoost);
         return searcher.search(query, numResults);
     }
 
@@ -191,13 +196,13 @@ public class LuceneBuilder {
      */
     public static void main(String[] args) throws IOException, org.apache.lucene.queryparser.classic.ParseException {
         LuceneBuilder luceneIndex = new LuceneBuilder();
-        luceneIndex.buildIndex();
+        //luceneIndex.buildIndex();
         luceneIndex.buildSearcher();
-        TopDocs hits = luceneIndex.search("covid", 10);
+        TopDocs hits = luceneIndex.search("black lives matter", 10);
 
         for(ScoreDoc scoreDoc : hits.scoreDocs) {
             Document doc = luceneIndex.searcher.doc(scoreDoc.doc);
-            System.out.println(doc.get("user"));
+            System.out.println("score: " + scoreDoc.score + " doc: " + doc);
         }
 
 
