@@ -223,7 +223,7 @@ public class LuceneBuilder {
         else{
             try {
                 System.out.println("Default run. Generating Lucene index in directory "+ "/index" +" using .json files located in directory "+ "/Crawler" +".");
-                luceneIndex = new LuceneBuilder("index", "Crawler");
+                luceneIndex = new LuceneBuilder();
                 luceneIndex.buildIndex();
             } catch (IOException ex) {
                 ex.printStackTrace();
