@@ -22,7 +22,7 @@ LuceneBuilder luceneIndex = new LuceneBuilder();
 LuceneBuilder luceneIndex = new LuceneBuilder("../index", "../Crawler");
 ```
 
-After creating the LuceneBuilder object, you may, if you want, build the index. This should only be done if there are no .json files currently in the index or if there are new .json files to add to the existing index. This should not be called if the index already exists and there are only "already added" files to add (doing so creates duplicate entries in the index). I've uploaded the index to GitHub should there should be no need to add or recreate it but you can to play around with it if you want.
+After creating the LuceneBuilder object, you may, if you want, build the index. This should only be done if there are no .json files currently in the index or if there are new .json files to add to the existing index. This should not be called if the index already exists and there are only "already added" files to add (doing so creates duplicate entries in the index). I've uploaded the index to GitHub;  there should be no need to add or recreate it but you can to play around with it if you want.
 
 ```java
 /*
@@ -69,4 +69,4 @@ for(ScoreDoc scoreDoc : hits.scoreDocs) {
         }
 ```
 
-That's it. If you want to be efficient, you can use the same LuceneBuilder object and seach it again using a new term. Alternatively you could create a new object everytime search is run. It shouldn't matter as Java will do the garbage collection automatically.
+That's it. If you want to be efficient, you can use the same LuceneBuilder object and seach it again using a new term. Alternatively you could create a new object every time search is run. It shouldn't matter as Java will do the garbage collection automatically.
