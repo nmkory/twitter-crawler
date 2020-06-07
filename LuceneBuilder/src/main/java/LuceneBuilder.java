@@ -208,20 +208,61 @@ public class LuceneBuilder {
      * @throws IOException when opening or closing a file goes wrong
      */
     public static void main(String[] args) throws IOException, org.apache.lucene.queryparser.classic.ParseException {
-        LuceneBuilder luceneIndex = new LuceneBuilder();
-        //luceneIndex.buildIndex();
-        luceneIndex.buildSearcher();
-        TopDocs hits = luceneIndex.search("covid19", 100);
-
-        for(ScoreDoc scoreDoc : hits.scoreDocs) {
-            Document doc = luceneIndex.searcher.doc(scoreDoc.doc);
-            System.out.println(doc.get("text"));
-            System.out.println("@" + doc.get("user"));
-            System.out.println(doc.get("datetime"));
-            System.out.println(doc.get("latitude"));
-            System.out.println(doc.get("longitude"));
-            System.out.println(doc.get("url"));
-            System.out.println();
+        LuceneBuilder luceneIndex = null;  //String indexDir, String JSONdir
+        if (args.length == 2) {
+            try {
+                System.out.println("Generating Lucene index in directory "+ args[0] +" using .json files located in directory "+ args[1] +".");
+                luceneIndex = new LuceneBuilder(args[0], args[1]);
+                luceneIndex.buildIndex();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                System.out.println("Invalid input. Check command line parameters to make sure directory locations are correct.");
+                System.exit(-1);
+            }
         }
+        else{
+            try {
+                System.out.println("Default run. Generating Lucene index in directory "+ "/index" +" using .json files located in directory "+ "/Crawler" +".");
+                luceneIndex = new LuceneBuilder("index", "Crawler");
+                luceneIndex.buildIndex();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                System.out.println("Invalid input. Check the file structure to make sure Lucene index can use directory "+ INDEX_DIR +" and .json files are located in directory "+ JSON_DIR +".");
+                System.exit(-1);
+            }
+        }
+
+        luceneIndex.buildSearcher();
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        String query;
+
+        System.out.println("Search the index for top 10 results by inputting something. Type 'exit' to exit.");
+        System.out.print("Search for: ");
+        while (!(query = reader.readLine()).equals("exit")) {
+
+            TopDocs hits = luceneIndex.search(query, 10);
+
+            if (hits.scoreDocs.length == 0) {
+                System.out.println("No farmed Tweets match that search term.");
+                System.out.println();
+            }
+
+            for (ScoreDoc scoreDoc : hits.scoreDocs) {
+                Document doc = luceneIndex.searcher.doc(scoreDoc.doc);
+                System.out.println(doc.get("text"));
+                System.out.println("@" + doc.get("user"));
+                System.out.println(doc.get("datetime"));
+                System.out.println("Latitude: " + doc.get("latitude"));
+                System.out.println("Longitude: " + doc.get("longitude"));
+                if (doc.get("url") != null) {
+                    System.out.println(doc.get("url"));
+                }
+                System.out.println();
+            }
+            System.out.println("Search the index again for top 10 results by inputting something. Type 'exit' to exit.");
+            System.out.print("Search for: ");
+        }
+        System.exit(0);
     }  //main()
 }  //public class LuceneBuilder
