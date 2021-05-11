@@ -1,4 +1,4 @@
-# CS 172 Project
+# Twitter Crawler
 
 A search engine for Twitter.
 
